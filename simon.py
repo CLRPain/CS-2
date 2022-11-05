@@ -54,21 +54,22 @@ class simon(Fl_Window):
         Fl.add_timeout(0.5, self.seq)
         
     def seq(self):
-        print(simon.score, 'score')
+        print(self.sequence, 'seq')
         seqint = randrange(0, 4)
-        simon.sequence.append(seqint)
-        self.sequence2 = simon.sequence
-
-        if len(simon.sequence) > simon.score:
-            Fl.remove_timeout(self.seq)
-            print(simon.sequence)
+        self.sequence.append(seqint)
+        self.sequence2 = self.sequence
         Fl.repeat_timeout(0.5, self.seq)
+        if len(self.sequence) > simon.score:
+            Fl.remove_timeout(self.seq)
+            print(self.sequence, 'done')
+
         
     def game(self, w, num):
         print('before')
         if num == self.sequence2[0]:
-            print('after')
+            print(self.sequence2)
             self.sequence2.pop(0)
+            print(self.sequence2)
             if len(self.sequence2) == 0:
                 simon.score += 1
                 Fl.add_timeout(0.5, self.seq)
