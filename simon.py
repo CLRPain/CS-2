@@ -15,7 +15,7 @@ class simon(Fl_Window):
         blue = Fl_Button(self.w()-150, 0, 150, 150, '1')#up right
         green = Fl_Button(0, self.h()-150, 150, 150, '2')#down left
         yellow = Fl_Button(self.w()-150, self.h()-150, 150 ,150, '3')#down right
-        startbut = Fl_Button(self.w()//2-40, self.h()//2-40 ,80 ,80, "Start")
+        self.startbut = Fl_Button(self.w()//2-40, self.h()//2-40 ,80 ,80, "Start")
         
         red.color(FL_DARK_RED)
         blue.color(FL_DARK_BLUE)
@@ -34,16 +34,13 @@ class simon(Fl_Window):
         self.buttons.append(blue)
         self.buttons.append(green)
         self.buttons.append(yellow)
-        self.buttons[0].callback(self.sound, 0)
-        self.buttons[1].callback(self.sound, 1)
-        self.buttons[2].callback(self.sound, 2)
-        self.buttons[3].callback(self.sound, 3)
+        
         self.buttons[0].callback(self.game, 0)
         self.buttons[1].callback(self.game, 1)
         self.buttons[2].callback(self.game, 2)
         self.buttons[3].callback(self.game, 3)
 
-        startbut.callback(self.start)
+        self.startbut.callback(self.start)
     
     def sound(self, w, num):
         sounds = ['red.mp3', 'blue.mp3', 'green.mp3', 'yellow.mp3']
@@ -51,25 +48,33 @@ class simon(Fl_Window):
         effects.play()
             
     def start(self, w):
+        self.startbut.deactivate()
         Fl.add_timeout(0.5, self.seq)
         
     def seq(self):
-        print(self.sequence, 'seq')
         seqint = randrange(0, 4)
         self.sequence.append(seqint)
-        self.sequence2 = self.sequence
-        Fl.repeat_timeout(0.5, self.seq)
+        self.blink()
+        self.sequence2 = self.sequence[:]
+        #Fl.repeat_timeout(0.5, self.seq)
+        Fl.add_timeout(0.5, self.blink)
         if len(self.sequence) > simon.score:
-            Fl.remove_timeout(self.seq)
+            #Fl.remove_timeout(self.seq)
+            Fl.remove_timeout(self.blink)
             print(self.sequence, 'done')
 
+    def blink(self):
+        if self.buttons[self.sequence[-1]].value() == 0:
+            self.buttons[self.sequence[-1]].value(1)
+        else:
+            self.buttons[self.sequence[-1]].clear()
+        Fl.repeat_timeout(0.5, self.blink)
+        
         
     def game(self, w, num):
-        print('before')
         if num == self.sequence2[0]:
-            print(self.sequence2)
             self.sequence2.pop(0)
-            print(self.sequence2)
+            print(self.sequence2, '2')
             if len(self.sequence2) == 0:
                 simon.score += 1
                 Fl.add_timeout(0.5, self.seq)
@@ -78,7 +83,6 @@ class simon(Fl_Window):
             print('you fucked up')
             a = 2 + '2'
     
-    #pop the number after guess
 game = simon(400, 400, "Simon")
 game.show()
 Fl.run()
