@@ -1,3 +1,4 @@
+
 from fltk import *
 from random import randrange
 from vlc import MediaPlayer
@@ -64,12 +65,16 @@ class simon(Fl_Window):
             print(self.sequence, 'done')
 
     def blink(self):
-        if self.buttons[self.sequence[0]].value() == 1:
-            self.buttons[self.sequence[0]].value(0)
-        self.buttons[self.sequence[1]].value(1)
+        x = len(self.sequence3)
+        print(-x)
+        self.buttons[self.sequence3[-x]].value(1)
+        self.sequence3.pop()
+        print(self.sequence3)
         Fl.repeat_timeout(0.5, self.blink)
-        if len(self.sequence) > simon.score:
-            Fl.remove_timeout(self.blink)
+        if len(self.sequence3) == 0:
+            self.buttons[:].clear()
+            self.buttons[self.sequence[-1]].value(0)
+            Fl.remove_timeout(self.blink) 
         
     def game(self, w, num):
         if num == self.sequence2[0]:
