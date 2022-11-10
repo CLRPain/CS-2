@@ -54,34 +54,33 @@ class simon(Fl_Window):
     def seq(self):
         seqint = randrange(0, 4)
         self.sequence.append(seqint)
-        self.blink()
         self.sequence2 = self.sequence[:]
-        #Fl.repeat_timeout(0.5, self.seq)
+        self.sequence3 = self.sequence[:]
+        Fl.repeat_timeout(0.5, self.seq)
         Fl.add_timeout(0.5, self.blink)
+        print('sequences')
         if len(self.sequence) > simon.score:
-            #Fl.remove_timeout(self.seq)
-            Fl.remove_timeout(self.blink)
+            Fl.remove_timeout(self.seq)
             print(self.sequence, 'done')
 
     def blink(self):
-        if self.buttons[self.sequence[-1]].value() == 0:
-            self.buttons[self.sequence[-1]].value(1)
-        else:
-            self.buttons[self.sequence[-1]].clear()
+        if self.buttons[self.sequence[0]].value() == 1:
+            self.buttons[self.sequence[0]].value(0)
+        self.buttons[self.sequence[1]].value(1)
         Fl.repeat_timeout(0.5, self.blink)
-        
+        if len(self.sequence) > simon.score:
+            Fl.remove_timeout(self.blink)
         
     def game(self, w, num):
         if num == self.sequence2[0]:
             self.sequence2.pop(0)
-            print(self.sequence2, '2')
+            print(self.sequence2)
             if len(self.sequence2) == 0:
                 simon.score += 1
                 Fl.add_timeout(0.5, self.seq)
                 simon.ind = 0
         else:
             print('you fucked up')
-            a = 2 + '2'
     
 game = simon(400, 400, "Simon")
 game.show()
