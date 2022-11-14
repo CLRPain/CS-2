@@ -5,13 +5,15 @@ from vlc import MediaPlayer
 class GStart(Fl_Window):
 	gsounds = ["green.mp3","red.mp3","yellow.mp3","blue.mp3"]
 	gsounds2 = {"green.mp3": 0, "red.mp3": 1,"yellow.mp3": 2,"blue.mp3": 3}
-	bsound = "error.mp3"
 	choices = []
 	buts = []
 	buts2 = []
 	clicked = []
 	N = 0
 	Num = -1
+	scor = 0
+	
+	noise = MediaPlayer()
 	def __init__(self, w, h, name = ""):
 		Fl_Window.__init__(self, w, h, name)
 		self.begin()
@@ -48,7 +50,7 @@ class GStart(Fl_Window):
 		self.buts2.append(self.yellow)
 		self.buts2.append(self.blue)
 		
-		self.sbut.callback(self.play)
+		self.sbut.callback(self.play, 1)
 		self.green.callback(self.soundz, 0)
 		self.red.callback(self.soundz, 1)
 		self.yellow.callback(self.soundz, 2)
@@ -56,19 +58,23 @@ class GStart(Fl_Window):
 		self.end()
 		self.show()
 	
-	def play(self,w):
+	def play(self,w, nu):
+		if nu == 1:
+			self.choices.clear()
+			self.buts.clear()
+			self.clicked.clear()
+			self.scor = 0
+			self.skor.value(str(self.scor))
+			
 		y = random.choice(self.gsounds)
 		self.choices.append(y)
-		print(self.choices)
 		GStart.play2(self,w)
 		
 	def play2(self,w):
-		
 		x = self.choices[-1]
 		y = self.gsounds2.get(x)
 		self.buts.append(y)
-		
-		print(self.buts)
+		self.buts3 = self.buts.copy()
 		for x in self.buts:
 			self.but = x
 			self.N += 1
@@ -76,8 +82,9 @@ class GStart(Fl_Window):
 			
 	def blink(self, x):	
 		self.N = 0
-		noise = MediaPlayer(self.gsounds[x])
-		noise.play()
+		GStart.noise.stop()
+		GStart.noise = MediaPlayer(self.gsounds[x])
+		GStart.noise.play()
 		self.buts2[x].value(1)
 		Fl.add_timeout(0.5, self.blink2, x)
 		
@@ -85,34 +92,23 @@ class GStart(Fl_Window):
 		self.buts2[x].value(0)
 		
 	def soundz(self, w, c):
-		noise = MediaPlayer(self.gsounds[c])
-		noise.play()
+		GStart.noise.stop()
+		GStart.noise = MediaPlayer(self.gsounds[c])
+		GStart.noise.play()
 		self.clicked.append(c)
-		print(self.clicked)
-		if len(self.clicked) == len(self.buts):
-			for x in range(len(self.buts)):
-				if self.clicked[0] == self.buts[0]:
-					print(self.buts)
-					self.buts.pop(0)
-					self.clicked.pop(0)
-				else:
-					print("L")
-			"""
-		for x in range(len(self.buts)):
-			if self.clicked[0] == self.buts[0]:
-				print(self.buts)
-				self.buts.pop(0)
-				self.clicked.pop(0)
-				"""
-		"""
-		y = 0
-		for x in self.buts:
-			if x != self.clicked[y]:
-				print("bruh")
-			y += 1
-		self.clicked = []
-		"""
-		if len(self.buts) == 0:
-			self.sbut.do_callback()
+		
+		if self.clicked[0] == self.buts3[0]:
+			self.buts3.pop(0)
+			self.clicked.pop(0)
+		else:
+			GStart.noise.stop()
+			GStart.noise = MediaPlayer("error.mp3")
+			GStart.noise.play()
+			
+		if len(self.buts3) == 0:
+			self.scor += 1
+			self.skor.value(str(self.scor))
+			self.skor.redraw()
+			GStart.play(self,w,0)
 win = GStart(600,600, "Simon Says")
 Fl.run()
