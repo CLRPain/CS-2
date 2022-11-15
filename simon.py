@@ -16,8 +16,8 @@ class simon(Fl_Window):
         green = Fl_Button(0, self.h()-200, 200, 200, '2')#down left
         yellow = Fl_Button(self.w()-200, self.h()-200, 200 ,200, '3')#down right
         self.startbut = Fl_Button(self.w()//2-40, self.h()//2-40 ,80 ,80, "Start")
-        self.current = Fl_Output(self.w()//2-40, 350 ,80 ,30, 'Current')
-        self.best = Fl_Output(self.w()//2-40, 390 ,80 ,30, "Best")
+        self.current = Fl_Output(self.w()//2-40, 350 ,80 ,30, 'Current') #current score
+        self.best = Fl_Output(self.w()//2-40, 390 ,80 ,30, "Best") #highscore
         self.current.value('0')
         self.best.value('0')
         
@@ -46,49 +46,55 @@ class simon(Fl_Window):
 
         self.startbut.callback(self.start)
     
-    def sound(self, num):
+    def sound(self, num): #play sound effects for button presses
         self.effects.stop()
         self.effects = MediaPlayer(self.sounds[num])
         self.effects.play()
             
-    def start(self, w):
+    def start(self, w): #start the game/reset
         if len(self.sequence) > 0:
             self.sequence.clear()
             self.current.value('0')
         self.score = 0
         Fl.add_timeout(0.5, self.seq)
         
-    def seq(self):
+    def seq(self): #make a list of button sequences
         self.times = 1
         seqint = randrange(0, 4)
         self.sequence.append(seqint)
         if len(self.sequence) > self.score:
-            self.sequence2 = self.sequence.copy()
+            self.sequence2 = self.sequence.copy() #make copies to change later
             self.sequence3 = self.sequence.copy()
-            for but in self.sequence:
+            for but in self.sequence: #flashing sequence
                 Fl.add_timeout(1.0*self.times, self.blink, but)
                 self.times += 1
+            Fl.add_timeout(5.0 + 1.0*self.times, self.timer) #time out timer
         
-    def blink(self, but):
+    def blink(self, but):#press the button for flashing
         self.sound(but)
         self.buttons[but].value(1)
         Fl.add_timeout(0.5, self.blunk, but)
     
-    def blunk(self, but):
+    def blunk(self, but):#depress the button for flashing
         self.buttons[but].value(0)
 
+    def timer(self):#5 sec answer timer
+        fl_message('You ran out of time')
+        self.best.value(str(self.score))
+        
     def game(self, w, num):
-        if num == self.sequence2[0]:
+        if num == self.sequence2[0]: #correct choice
             self.sound(num)
             self.sequence2.pop(0)
-            print(self.sequence2)
-            if len(self.sequence2) == 0:
+            Fl.remove_timeout(self.timer)
+            if len(self.sequence2) == 0: #if the whole sequence is pressed
                 self.score += 1
-                self.current.value(str(self.score))
+                self.current.value(str(self.score))#update score
                 self.seq()
-        else:
-            print('you fucked up')
-            self.best.value(str(len(self.sequence)))
+        else: #wrong choice
+            self.best.value(str(self.score))
+            skull = MediaPlayer('error.mp3')
+            skull.play()
     
 if __name__ == '__main__':
     Fl.scheme('plastic')
