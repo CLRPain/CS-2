@@ -2,6 +2,7 @@ from fltk import *
 from random import randrange
 from vlc import MediaPlayer
 
+
 class simon(Fl_Window):
     def __init__(self, w, h, label):
         Fl_Window.__init__(self, w, h, label)
