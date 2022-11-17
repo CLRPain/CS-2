@@ -80,22 +80,26 @@ class simon(Fl_Window):
         self.buttons[but].value(0)
 
     def timer(self):#5 sec answer timer
-        fl_message('You ran out of time')
         self.best.value(str(self.score))
+        f = MediaPlayer('error.mp3')
+        f.play()
+        fl_message(f'You ran out of time. Your score was {self.score}')
         
     def game(self, w, num):
+        Fl.remove_timeout(self.timer)
         if num == self.sequence2[0]: #correct choice
+            Fl.add_timeout(5.0, self.timer)
             self.sound(num)
             self.sequence2.pop(0)
-            Fl.remove_timeout(self.timer)
             if len(self.sequence2) == 0: #if the whole sequence is pressed
                 self.score += 1
                 self.current.value(str(self.score))#update score
                 self.seq()
         else: #wrong choice
             self.best.value(str(self.score))
-            skull = MediaPlayer('error.mp3')
-            skull.play()
+            f = MediaPlayer('error.mp3')
+            f.play()
+            fl_message(f"Your score was {self.score}")
     
 if __name__ == '__main__':
     Fl.scheme('plastic')
