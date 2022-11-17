@@ -1,5 +1,5 @@
 from fltk import *
-import random
+from random import choice
 from vlc import MediaPlayer
 
 class GStart(Fl_Window):
@@ -12,8 +12,9 @@ class GStart(Fl_Window):
 	N = 0
 	Num = -1
 	scor = 0
-	
+	high = 0
 	noise = MediaPlayer()
+	
 	def __init__(self, w, h, name = ""):
 		Fl_Window.__init__(self, w, h, name)
 		self.begin()
@@ -23,7 +24,8 @@ class GStart(Fl_Window):
 		self.blue = Fl_Button(340,340,260,260)
 		self.sbut = Fl_Button(260,260,80,60, "Start")
 		self.skor = Fl_Output(310,320,30,20, "Score:")
-		
+		self.hi = Fl_Output(310,340,30,20, "High:")
+		#making objects
 		self.green.box(FL_PLASTIC_UP_BOX)
 		self.red.box(FL_PLASTIC_UP_BOX)
 		self.yellow.box(FL_PLASTIC_UP_BOX)
@@ -41,7 +43,7 @@ class GStart(Fl_Window):
 		self.yellow.down_color(yellow)
 		self.blue.color(FL_DARK_BLUE)
 		self.blue.down_color(FL_BLUE)
-		
+		#changing color and style
 		self.sbut.tooltip("Starts game or ends current game and restarts")
 		self.resizable(self)
 		
@@ -55,6 +57,7 @@ class GStart(Fl_Window):
 		self.red.callback(self.soundz, 1)
 		self.yellow.callback(self.soundz, 2)
 		self.blue.callback(self.soundz, 3)
+		#adding click sounds and sequence check
 		self.end()
 		self.show()
 	
@@ -65,8 +68,8 @@ class GStart(Fl_Window):
 			self.clicked.clear()
 			self.scor = 0
 			self.skor.value(str(self.scor))
-			
-		y = random.choice(self.gsounds)
+			#resetts game if start is clicked
+		y = choice(self.gsounds)
 		self.choices.append(y)
 		GStart.play2(self,w)
 		
@@ -74,41 +77,56 @@ class GStart(Fl_Window):
 		x = self.choices[-1]
 		y = self.gsounds2.get(x)
 		self.buts.append(y)
-		self.buts3 = self.buts.copy()
+		self.buts3 = self.buts.copy() #creating a copy of sequence for checking
 		for x in self.buts:
 			self.but = x
 			self.N += 1
-			Fl.add_timeout(1.0*self.N, self.blink, x)
+			Fl.add_timeout(1.0*self.N, self.blink, x) #making sequence
+		Fl.add_timeout(5.0 + 1.0*self.N, self.death)
 			
 	def blink(self, x):	
 		self.N = 0
 		GStart.noise.stop()
 		GStart.noise = MediaPlayer(self.gsounds[x])
 		GStart.noise.play()
-		self.buts2[x].value(1)
+		self.buts2[x].value(1) #blinking
 		Fl.add_timeout(0.5, self.blink2, x)
 		
 	def blink2(self, x):
 		self.buts2[x].value(0)
 		
 	def soundz(self, w, c):
-		GStart.noise.stop()
+		GStart.noise.stop() #button click sounds
 		GStart.noise = MediaPlayer(self.gsounds[c])
 		GStart.noise.play()
 		self.clicked.append(c)
+		Fl.remove_timeout(self.death) #removes idle counter
 		
 		if self.clicked[0] == self.buts3[0]:
 			self.buts3.pop(0)
-			self.clicked.pop(0)
+			self.clicked.pop(0) #if correct
 		else:
 			GStart.noise.stop()
 			GStart.noise = MediaPlayer("error.mp3")
 			GStart.noise.play()
+			if self.scor > self.high:
+				self.high = self.scor
+				self.hi.value(str(self.scor)) #if incorrect
 			
 		if len(self.buts3) == 0:
 			self.scor += 1
 			self.skor.value(str(self.scor))
 			self.skor.redraw()
 			GStart.play(self,w,0)
+	
+	def death(self):
+		self.choices.clear() #idle timer
+		self.buts.clear()
+		self.clicked.clear()
+		self.buts3.clear()
+		GStart.noise.stop()
+		GStart.noise = MediaPlayer("error.mp3")
+		GStart.noise.play()
+
 win = GStart(600,600, "Simon Says")
 Fl.run()
