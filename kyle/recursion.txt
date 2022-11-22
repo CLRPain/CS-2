@@ -1,0 +1,6 @@
+recursion is a function that calls itself
+
+base case is for terminating recursion
+recursion should only be used for problems that are recursive in nature
+like russian nesting dolls where the smallest one is the base case and the recursion end
+
