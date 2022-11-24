@@ -12,21 +12,22 @@ class points(Fl_Window):
         A = (350, 10)
         B = (4, 610)
         C = (696, 610)
-        self.triangle(A, B, C, 6)
+        self.triangle(A, B, C, 14)
         
     def triangle(self, A, B, C, n):
         n -= 1
-        print('hi')
         if n == 0:
             return 
         fl_line(A[0], A[1], B[0], B[1])
         fl_line(A[0], A[1], C[0], C[1])
         fl_line(B[0], B[1], C[0], C[1])
-        nA = self.mid(A, B)
-        nB = self.mid(A, C)
-        nC = self.mid(B, C)
+        AB = self.mid(A, B)
+        AC = self.mid(A, C)
+        BC = self.mid(B, C)
         
-        self.triangle(nA, nB, nC, n)
+        self.triangle(A, AB, AC, n)
+        self.triangle(B, AB, BC, n)
+        self.triangle(C, BC, AC, n)
         
     def mid(self, start, end):
         midx = (start[0] + end[0])//2
