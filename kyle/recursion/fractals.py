@@ -18,10 +18,10 @@ class points(Fl_Window):
         fl_line(P[0]-D, P[1], P[0]+D, P[1])
         fl_line(P[0], P[1]-D, P[0], P[1]+D)
         D = D//2
-        L = self.mid(P[0]-D, P[1]) # 0, 200
-        R = self.mid(P[0]+D, P[1]) # 600, 400
-        T = self.mid(P[0], P[1]-D) # 400, 200
-        B = self.mid(P[0], P[1]+D) # 400, 600
+        L = (P[0]-D, P[1]) # 200, 400
+        R = (P[0]+D, P[1]) # 600, 400
+        T = (P[0], P[1]-D) # 400, 200
+        B = (P[0], P[1]+D) # 400, 600
         
         self.cross(L, D, n-1)
         self.cross(R, D, n-1)
