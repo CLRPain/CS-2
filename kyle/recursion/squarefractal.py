@@ -2,7 +2,7 @@ from fltk import *
 class points(Fl_Window):
     def __init__(self, w, h, label):
         Fl_Window.__init__(self, w, h, label)
-        self.color(FL_BLACK)
+        self.color(FL_BLUE)
         self.end
         self.resizable(self)
         
@@ -17,10 +17,10 @@ class points(Fl_Window):
         if n == 0:
             return 
         D = D//3
-        D2 = D*2
         d1 = P[0]+D, P[1]+D
-        d2 = P[0]+D2, P[1]+D2
-        fl_rectf(d1[0], d1[1], d2[0], d2[1], FL_BLUE)
+        d2 = P[0]+D, P[1]+D
+        fl_rectf(d1[0], d1[1], d2[0], d2[1], FL_WHITE)
+        self.carpet(D, d1, n-1)
         
 if __name__ == '__main__':
     win = points(700, 700, '3 Points')
