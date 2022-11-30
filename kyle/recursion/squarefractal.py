@@ -11,18 +11,24 @@ class points(Fl_Window):
         fl_color(FL_RED)
         D = win.w()
         P = (0, 0)
-        self.carpet(D, P, 16)
+        self.carpet(D, P, 6)
         
     def carpet(self, D, P, n):
         if n == 0:
             return 
         D = D//3
-        d1 = P[0]+D, P[1]+D
-        d2 = P[0]+D, P[1]+D
-        fl_rectf(d1[0], d1[1], d2[0], d2[1], FL_WHITE)
-        self.carpet(D, d1, n-1)
+        pointlist = []
+        for row in range(3):
+            for col in range(3):
+                point = P[0]+(D*row), P[1]+(D*col)
+                pointlist.append(point)
+                
+        fl_rectf(pointlist[4][0], pointlist[4][1], D, D, FL_WHITE)
+        for x in range(9):
+            if x != 4:
+                self.carpet(D, pointlist[x], n-1)
         
 if __name__ == '__main__':
-    win = points(700, 700, '3 Points')
+    win = points(900, 900, '3 Points')
     win.show()
     Fl.run()
