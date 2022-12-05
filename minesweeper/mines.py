@@ -20,6 +20,7 @@ class mine(Fl_Window):
             self.ButList[-1].callback(self.reveal)
 
         self.flag  = Fl_PNG_Image('flag.png')
+        self.none = Fl_PNG_Image(None)
         self.end()
         self.resizable(self)
         
@@ -27,7 +28,8 @@ class mine(Fl_Window):
     def reveal(self, wid):
         if Fl.event_button() == FL_RIGHT_MOUSE:
             if wid.image() == self.flag:
-                image
+                pass
+                #wid.image(self.none)
             else:
                 wid.image(self.flag)
         elif wid in self.ButList:
