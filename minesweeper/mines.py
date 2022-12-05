@@ -43,3 +43,6 @@ if __name__ == '__main__':
     win = mine(500, 500, 'Mine Sweeper')
     win.show()
     Fl.run()
+    
+    
+    #hi try 2 3
