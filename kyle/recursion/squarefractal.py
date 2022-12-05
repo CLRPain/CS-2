@@ -32,3 +32,5 @@ if __name__ == '__main__':
     win = points(900, 900, '3 Points')
     win.show()
     Fl.run()
+    
+    #hi
