@@ -1,3 +1,4 @@
+
 from fltk import *
 from random import sample
 
@@ -8,6 +9,7 @@ class mine(Fl_Window):
         self.ButList = []
         self.BombList = []
         self.BombIndex = []
+        self.CheckList = []
         for r in range(10):
             temp = []
             for c in range(10):
@@ -19,7 +21,7 @@ class mine(Fl_Window):
         sel2 = sample(range(10), 10)
         for x in range(10):
             self.BombList.append(self.ButList[sel[x]][sel2[x]])
-            #self.BombList[-1].label('bomb')
+            self.BombList[-1].label('bomb')
             self.BombList[-1].callback(self.reveal)
             self.BombIndex.append(self.findind(self.BombList[-1]))
 
@@ -30,6 +32,7 @@ class mine(Fl_Window):
         
     def reveal(self, wid):
         pos = self.findind(wid)
+        print(pos)
         if Fl.event_button() == FL_RIGHT_MOUSE:
             if wid.image() != None:
                 wid.image(None)
@@ -44,28 +47,54 @@ class mine(Fl_Window):
             if num != None:
                 wid.label(str(num))
             print('good')
-            wid.deactivate()
-    
+            #wid.deactivate()
+    '''
     def check(self, r, c):
-        a = 0
-        for x in range(-1, 2):
-            for y in range(-1, 2):
-                if 0<=(r+x)<10 and 0<=(c+y)<10:
-                    if (r+x, c+y) in self.BombIndex:
-                        a+=1
-        if a == 0:
+        if self.ButList[r][c] not in self.CheckList:
+            self.CheckList.append(self.ButList[r][c])
+            print(r, c, 'startedclear')
+            print('run')
+            a = 0
             for x in range(-1, 2):
                 for y in range(-1, 2):
                     if 0<=(r+x)<10 and 0<=(c+y)<10:
-                        self.check(r+x, c+y)
-        else:
-            print('found a bomb', a)
-            return a
+                        print(r+x, c+y)
+                        if (r+x, c+y) in self.BombIndex:
+                            a+=1
+            if a != 0 and self.ButList[r][c].label() != 'bomb':
+                print(a, 'bombs')
+                self.ButList[r][c].label(str(a))
+                return
+            for x in range(-1, 2):
+                    for y in range(-1, 2):
+                        if 0<=(r+x)<10 and 0<=(c+y)<10:
+                            print(len(self.CheckList))
+                            self.check(r+x, c+y)
+                            self.ButList[r+x][c+y].value(1)
+    '''
+    def check(self, r, c):
+        bomb = 0
+        for x in range(-1, 2):
+                for y in range(-1, 2):
+                    if 0<=(r+x)<10 and 0<=(c+y)<10:
+                        self.CheckList.append((r, c))
+                        self.ButList[r][c].value(1)
+                        if (r+x, c+y) in self.BombIndex:
+                            bomb += 1
+        for x in range(-1, 2):
+                for y in range(-1, 2):
+                    if 0<=(r+x)<10 and 0<=(c+y)<10:
+                        if (r+x, c+y) not in self.CheckList:
+                            self.check(r+x, c+y)
+        if bomb > 0:
+            return bomb
+            
+
     def findind(self, wid):
         for x in self.ButList:
             if wid in x:
                 ind = x.index(wid)
-                return ind, self.ButList.index(x)
+                return self.ButList.index(x), ind
     
     
     
