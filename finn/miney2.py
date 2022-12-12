@@ -13,7 +13,6 @@ class Mines(Fl_Window):
             for c in range(10):
                 temp.append(Fl_Button((c*50)+ 20, (r *50) + 60, 50,50))
                 temp[c].callback(self.notboom)
-                #temp[c].callback(self.around(r, c))
             self.L.append(temp)
         o = random.sample(range(10), 10)
         t = random.sample(range(10), 10)
@@ -21,15 +20,31 @@ class Mines(Fl_Window):
             self.BL.append(self.L[o[x]][t[x]])
         for but in self.BL:
             but.callback(self.boom)
+            but.label("bomb")
+
+            
+                        
+
+                
         
     def notboom(self, wid):
-        wid.hide()
+        #wid.hide()
         for but in self.L:
             if wid in but:
-                found = but.index(wid)
-                found2 = self.L.index(but)
+                found2 = but.index(wid)
+                found = self.L.index(but)
                 print(found, found2)
-                return found, found2
+        rounds = 0
+        #TO DO: MAKE THE EMPTY SQUARES ALL DISSAPEAR IF CONNECTED TO EACH OTHER will be easier if we can move this to __init__
+        for x in range(-1,2):
+            for y in range(-1,2):
+                if 0<=(found+x) < 10 and 0<=(found2+y)<10:
+                    if self.L[found + x][found2 + y] in self.BL:
+                        rounds += 1
+        round = str(rounds)
+        wid.label(round)
+                    
+                    
         #self.L[0][1].hide() use stuff like this very helpful because coords
     """
     def around(self, r, c):
