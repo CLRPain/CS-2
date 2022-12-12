@@ -12,7 +12,7 @@ class points(Fl_Window):
         A = (350, 10)
         B = (4, 610)
         C = (696, 610)
-        self.triangle(A, B, C, 14)
+        self.triangle(A, B, C, 8)
         
     def triangle(self, A, B, C, n):
         n -= 1

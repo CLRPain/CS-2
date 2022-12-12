@@ -19,7 +19,7 @@ class mine(Fl_Window):
         sel2 = sample(range(10), 10)
         for x in range(10):
             self.BombList.append(self.ButList[sel[x]][sel2[x]])
-            self.BombList[-1].label('bomb')
+            #self.BombList[-1].label('bomb')
             self.BombList[-1].callback(self.reveal)
             self.BombIndex.append(self.findind(self.BombList[-1]))
 
@@ -35,11 +35,14 @@ class mine(Fl_Window):
                 wid.image(None)
                 wid.redraw()
             else:
+                print('flagged')
                 wid.image(self.flag)
         elif wid in self.BombList:
             print('bad')
         else:
-            self.check(pos[0], pos[1])
+            num = self.check(pos[0], pos[1])
+            if num != None:
+                wid.label(str(num))
             print('good')
             wid.deactivate()
     
@@ -47,13 +50,17 @@ class mine(Fl_Window):
         a = 0
         for x in range(-1, 2):
             for y in range(-1, 2):
-                print('ind', r+x, c+y)
-                if 0<=(r+x)<5 and 0<=(c+y)<5:
+                if 0<=(r+x)<10 and 0<=(c+y)<10:
                     if (r+x, c+y) in self.BombIndex:
                         a+=1
-                        print('baddie', a)
-        print('check done')
-        
+        if a == 0:
+            for x in range(-1, 2):
+                for y in range(-1, 2):
+                    if 0<=(r+x)<10 and 0<=(c+y)<10:
+                        self.check(r+x, c+y)
+        else:
+            print('found a bomb', a)
+            return a
     def findind(self, wid):
         for x in self.ButList:
             if wid in x:
