@@ -1,9 +1,9 @@
 from fltk import *
 import random
-#allowed to die on first click
 class Mines(Fl_Window):
     L = []
     BL = []
+    CL = []
     Flags = 10
     b = 0
     def __init__(self, w, h, label = None):
@@ -20,45 +20,40 @@ class Mines(Fl_Window):
             self.BL.append(self.L[o[x]][t[x]])
         for but in self.BL:
             but.callback(self.boom)
-            but.label("bomb")
-
             
-                        
-
-                
-        
     def notboom(self, wid):
-        #wid.hide()
-        for but in self.L:
-            if wid in but:
-                found2 = but.index(wid)
-                found = self.L.index(but)
-                print(found, found2)
-        rounds = 0
-        #TO DO: MAKE THE EMPTY SQUARES ALL DISSAPEAR IF CONNECTED TO EACH OTHER will be easier if we can move this to __init__
-        for x in range(-1,2):
-            for y in range(-1,2):
-                if 0<=(found+x) < 10 and 0<=(found2+y)<10:
-                    if self.L[found + x][found2 + y] in self.BL:
-                        rounds += 1
-        round = str(rounds)
-        wid.label(round)
+        if Fl.event_button() == FL_LEFT_MOUSE:
+            for but in self.L:
+                if wid in but:
+                    found2 = but.index(wid)
+                    found = self.L.index(but)
+                    print(found, found2)
+            rounds = 0
+            for x in range(-1,2):
+                for y in range(-1,2):
+                    if 0<=(found+x) < 10 and 0<=(found2+y)<10:
+                        if self.L[found + x][found2 + y] in self.BL:
+                            rounds += 1
+            round = str(rounds)
+            wid.value(1)
+            if rounds == 0:
+                if wid not in self.CL:
+                    self.CL.append(wid)
+                    for x in range(-1,2):
+                        for y in range(-1,2):
+                            if 0<=(found+x) < 10 and 0<=(found2+y)<10:
+                                self.L[found + x][found2 + y].do_callback()    
+            else:
+                wid.label(round)
+        if Fl.event_button() == FL_RIGHT_MOUSE:
+            print("hi")
                     
-                    
-        #self.L[0][1].hide() use stuff like this very helpful because coords
-    """
-    def around(self, r, c):
-        for x in range(-1, 2):
-            for y in range(-1, 2):
-                if 0<=(r+x) < 5 and 0<=(c+y)<5:
-                    pass
-                    #print([self.L[r+x][c+y]])
-    """
     def boom(self, w):
         if Fl.event_button() == FL_LEFT_MOUSE and self.b == 0:
             img = Fl_JPEG_Image("bomb.jpg")
             img = img.copy(50,50)
             w.image(img)
+            fl_message("Sorry you lose.")
             
         if Fl.event_button() == FL_RIGHT_MOUSE:
             if w.image() == None:
