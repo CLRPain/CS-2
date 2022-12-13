@@ -21,57 +21,28 @@ class mine(Fl_Window):
         sel2 = sample(range(10), 10)
         for x in range(10):
             self.BombList.append(self.ButList[sel[x]][sel2[x]])
-            self.BombList[-1].label('bomb')
+            #self.BombList[-1].label('bomb')
             self.BombList[-1].callback(self.reveal)
             self.BombIndex.append(self.findind(self.BombList[-1]))
 
         self.flag  = Fl_PNG_Image('flag.png').copy(50, 50)
+        self.bomb = Fl_JPEG_Image('bomb.jpg').copy(50, 50)
         self.end()
         self.resizable(self)
         
-        
     def reveal(self, wid):
         pos = self.findind(wid)
-        print(pos)
         if Fl.event_button() == FL_RIGHT_MOUSE:
             if wid.image() != None:
                 wid.image(None)
                 wid.redraw()
             else:
-                print('flagged')
                 wid.image(self.flag)
         elif wid in self.BombList:
-            print('bad')
+            wid.image(self.bomb)
         else:
-            num = self.check(pos[0], pos[1])
-            if num != None:
-                wid.label(str(num))
-            print('good')
-            #wid.deactivate()
-    '''
-    def check(self, r, c):
-        if self.ButList[r][c] not in self.CheckList:
-            self.CheckList.append(self.ButList[r][c])
-            print(r, c, 'startedclear')
-            print('run')
-            a = 0
-            for x in range(-1, 2):
-                for y in range(-1, 2):
-                    if 0<=(r+x)<10 and 0<=(c+y)<10:
-                        print(r+x, c+y)
-                        if (r+x, c+y) in self.BombIndex:
-                            a+=1
-            if a != 0 and self.ButList[r][c].label() != 'bomb':
-                print(a, 'bombs')
-                self.ButList[r][c].label(str(a))
-                return
-            for x in range(-1, 2):
-                    for y in range(-1, 2):
-                        if 0<=(r+x)<10 and 0<=(c+y)<10:
-                            print(len(self.CheckList))
-                            self.check(r+x, c+y)
-                            self.ButList[r+x][c+y].value(1)
-    '''
+            self.check(pos[0], pos[1])
+    
     def check(self, r, c):
         bomb = 0
         for x in range(-1, 2):
@@ -81,15 +52,15 @@ class mine(Fl_Window):
                         self.ButList[r][c].value(1)
                         if (r+x, c+y) in self.BombIndex:
                             bomb += 1
+        if bomb > 0:
+            self.ButList[r][c].label(str(bomb))
+            return
         for x in range(-1, 2):
                 for y in range(-1, 2):
                     if 0<=(r+x)<10 and 0<=(c+y)<10:
                         if (r+x, c+y) not in self.CheckList:
                             self.check(r+x, c+y)
-        if bomb > 0:
-            return bomb
             
-
     def findind(self, wid):
         for x in self.ButList:
             if wid in x:
