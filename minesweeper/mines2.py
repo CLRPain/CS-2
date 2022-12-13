@@ -38,11 +38,12 @@ class mine(Fl_Window):
                 wid.redraw()
             else:
                 wid.image(self.flag)
-        elif wid in self.BombList:
+        elif wid in self.BombList and wid.image() == None:
             wid.image(self.bomb)
-        else:
+        elif wid.image() == None:
             self.check(pos[0], pos[1])
-    
+        if len(set(self.CheckList)) == 90:
+            fl_message('you won')
     def check(self, r, c):
         bomb = 0
         for x in range(-1, 2):
@@ -52,7 +53,7 @@ class mine(Fl_Window):
                         self.ButList[r][c].value(1)
                         if (r+x, c+y) in self.BombIndex:
                             bomb += 1
-        if bomb > 0:
+        if bomb > 0 and self.ButList[r][c].image() == None:
             self.ButList[r][c].label(str(bomb))
             return
         for x in range(-1, 2):
