@@ -1,6 +1,6 @@
-
 from fltk import *
 from random import sample
+from time import time
 
 class mine(Fl_Window):
     def __init__(self, w, h, label):
@@ -10,6 +10,8 @@ class mine(Fl_Window):
         self.BombList = []
         self.BombIndex = []
         self.CheckList = []
+        self.flaglist = []
+        self.start = time()
         for r in range(10):
             temp = []
             for c in range(10):
@@ -21,7 +23,7 @@ class mine(Fl_Window):
         sel2 = sample(range(10), 10)
         for x in range(10):
             self.BombList.append(self.ButList[sel[x]][sel2[x]])
-            #self.BombList[-1].label('bomb')
+            self.BombList[-1].label('bomb')
             self.BombList[-1].callback(self.reveal)
             self.BombIndex.append(self.findind(self.BombList[-1]))
 
@@ -36,14 +38,24 @@ class mine(Fl_Window):
             if wid.image() != None:
                 wid.image(None)
                 wid.redraw()
+                self.flaglist.remove(pos)
             else:
                 wid.image(self.flag)
+                self.flaglist.append(pos)
         elif wid in self.BombList and wid.image() == None:
             wid.image(self.bomb)
+            for x in self.flaglist:
+                if x not in self.BombIndex:
+                    self.ButList[x[0]][x[1]].image(None)
+                    self.ButList[x[0]][x[1]].color(FL_RED)
+                    self.ButList[x[0]][x[1]].redraw()
         elif wid.image() == None:
             self.check(pos[0], pos[1])
         if len(set(self.CheckList)) == 90:
-            fl_message('you won')
+            timetaken = time() - self.start
+            timetaken = round(timetaken, 1)
+            fl_message(f'you won and it took you {timetaken} seconds')
+            
     def check(self, r, c):
         bomb = 0
         for x in range(-1, 2):
@@ -75,4 +87,3 @@ if __name__ == '__main__':
     win = mine(500, 500, 'Mine Sweeper')
     win.show()
     Fl.run()
-    #hi
