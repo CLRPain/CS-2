@@ -1,17 +1,20 @@
 from fltk import *
 import random
+import time
 class Mines(Fl_Window):
     L = []
     BL = []
     CL = []
+    CL2 = []
     Flags = 10
     b = 0
+    b2 = 0
     def __init__(self, w, h, label = None):
-        Fl_Window.__init__(self, w, h, label)       
+        Fl_Window.__init__(self, w, h, label)
         for r in range(10):
             temp = [] 
             for c in range(10):
-                temp.append(Fl_Button((c*50)+ 20, (r *50) + 60, 50,50))
+                temp.append(Fl_Button((c*50)+ 20, (r *50) + 20, 50,50))
                 temp[c].callback(self.notboom)
             self.L.append(temp)
         o = random.sample(range(10), 10)
@@ -20,9 +23,13 @@ class Mines(Fl_Window):
             self.BL.append(self.L[o[x]][t[x]])
         for but in self.BL:
             but.callback(self.boom)
-            
+        self.tim = time.time()
+        self.resizable(self)    
+        
     def notboom(self, wid):
-        if Fl.event_button() == FL_LEFT_MOUSE:
+        if wid not in self.CL2:
+            self.CL2.append(wid)
+        if Fl.event_button() == FL_LEFT_MOUSE and self.b2 == 0:
             for but in self.L:
                 if wid in but:
                     found2 = but.index(wid)
@@ -46,14 +53,44 @@ class Mines(Fl_Window):
             else:
                 wid.label(round)
         if Fl.event_button() == FL_RIGHT_MOUSE:
-            print("hi")
+            if wid.image() == None:
+                if wid.value() == 0:
+                    img = Fl_PNG_Image("flag.png")
+                    img = img.copy(50,50)
+                    wid.image(img)
+                    self.b2 = 1
+                
+            else:
+                wid.image(None)
+                self.b2 = 0
+                
+        if len(set(self.CL2)) == 90:
+            fl_message("You Win!")
                     
     def boom(self, w):
         if Fl.event_button() == FL_LEFT_MOUSE and self.b == 0:
             img = Fl_JPEG_Image("bomb.jpg")
             img = img.copy(50,50)
             w.image(img)
-            fl_message("Sorry you lose.")
+            for but in self.BL:
+                img = Fl_JPEG_Image("bomb.jpg")
+                img = img.copy(50,50)
+                but.image(img)
+                but.redraw()
+            for list in self.L:
+                for but in list:
+                    if but.image() != None and but not in self.BL:
+                        but.image(None)
+                        but.color(FL_RED)
+                        but.label("Wrong")
+                        but.redraw()
+            tt = time.time() - self.tim
+            tt = round(tt, 1)
+            for list in self.L:
+                for but in list:
+                    but.deactivate()
+            fl_message(f"Sorry you lose, \nTime Taken: {tt} seconds")
+                
             
         if Fl.event_button() == FL_RIGHT_MOUSE:
             if w.image() == None:
@@ -65,36 +102,7 @@ class Mines(Fl_Window):
             else:
                 w.image(None)
                 self.b = 0
-                
-    """
-    def notboom(self,w):
-        if Fl.event_button() == FL_LEFT_MOUSE:
-            w.hide()
-            p = self.cl.index(w) - 11
-            pb = self.cl[p]
-            if pb not in self.minel:
-                pb.hide()
-            if pb in self.minel:
-                pb.label("hi") #change this lel
-        if Fl.event_button() == FL_RIGHT_MOUSE:
-            if self.Flags > 0:
-                if w.image() == None:	
-                    img = Fl_PNG_Image("flag.png")
-                    img = img.copy(50,50)
-                    w.image(img)
-                    #self.Flags -= 1
-                elif w.image() != None:
-                    w.image(None)
-                    w.redraw()
-                #	self.Flags += 1
-"""
-                    
 
-
-        
-        
-        
-        
-win = Mines(540, 580, "Mynes")
+win = Mines(540, 540, "Mynes")
 win.show()
 Fl.run()
