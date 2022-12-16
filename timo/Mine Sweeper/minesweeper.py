@@ -171,7 +171,7 @@ class Mine_Sweeper(Fl_Window):
 
                 if 0 <= (row + x) < 10 and 0 <= (col + y) < 10:
 
-                    if (row + x, col + y) not in self.revealed_list:  # Mmakes it so it does not recurse infintely
+                    if (row + x, col + y) not in self.revealed_list:  # Makes it so it does not recurse infintely
                         if self.button_list[row + x][col + y] not in self.flag_list:
                             self.num(row + x, col + y)  # Recurse
 
