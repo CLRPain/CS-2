@@ -57,7 +57,7 @@ class mine(Fl_Window):
             for x in range(-1, 2):
                 for y in range(-1, 2):
                     if 0<=(r+x)<10 and 0<=(c+y)<10:
-                        self.check(r+x, c+y)
+                        self.check(r+x, c+y) #this is still fucked
         else:
             print('found a bomb', a)
             return a
