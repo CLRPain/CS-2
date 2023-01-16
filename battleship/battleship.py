@@ -5,7 +5,7 @@ import socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     s.settimeout(10.0)
-    s.connect(('localhost', 25565))
+    s.connect(('192.168.3.3', 25565))
     s.sendall('Connected to Server'.encode())
     label = 'client'
     print(s.recv(1024).decode())
@@ -15,7 +15,7 @@ except Exception as e:
     print(e)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.bind(('localhost', 25565))
+    s.bind(('0.0.0.0', 25565))
     s.listen(1)
     label = 'server'
     conn, addr = s.accept()
@@ -68,8 +68,8 @@ class BattleshipSelf(Fl_Window):
     def shot(self):
         conn.settimeout(None)
         if label == 'server':
-            conn.send('Ready')
-            data = conn.recv(1024)
+            conn.send('Ready'.encode())
+            data = conn.recv(1024).decode()
             if data == 'Ready':
                     while True:
                         loc = conn.recv(1024)
@@ -77,12 +77,12 @@ class BattleshipSelf(Fl_Window):
                             self.LB[loc.decode()].label('h')
         
         else:
-            data = conn.recv(1024)
-            conn.send('Ready')
+            data = conn.recv(1024).decode()
+            conn.send('Ready'.encode())
             if data == 'Ready':
                 while True:
                     loc = conn.recv(1024)
-                    if loc.decode() in self.shiploc:
+                    if int(loc.decode()) in self.shiploc:
                         self.LB[loc.decode()].label('h')
         
             
@@ -93,8 +93,7 @@ class BattleshipOther(BattleshipSelf):
 
     def but_cb(self, wid):
         cord = self.BL.index(wid)
-        conn.send('Ready')
-        conn.send('cord'.encode())
+        conn.send(str(cord).encode())
         
         
         
