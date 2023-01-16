@@ -1,6 +1,5 @@
 from fltk import *
 import socket 
-import sys
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -68,12 +67,23 @@ class BattleshipSelf(Fl_Window):
     
     def shot(self):
         conn.settimeout(None)
-        data = conn.recv(1024)
-        if data == 'Ready':
-            while True:
-                loc = conn.recv(1024)
-                if loc.decode() in self.shiploc:
-                    self.LB(loc.decode()).label('h')
+        if label == 'server':
+            conn.send('Ready')
+            data = conn.recv(1024)
+            if data == 'Ready':
+                    while True:
+                        loc = conn.recv(1024)
+                        if loc.decode() in self.shiploc:
+                            self.LB[loc.decode()].label('h')
+        
+        else:
+            data = conn.recv(1024)
+            conn.send('Ready')
+            if data == 'Ready':
+                while True:
+                    loc = conn.recv(1024)
+                    if loc.decode() in self.shiploc:
+                        self.LB[loc.decode()].label('h')
         
             
     
@@ -94,5 +104,3 @@ if __name__ == "__main__":
     gameSelf.show()
     gameOther.show()
     Fl.run()
-
-
