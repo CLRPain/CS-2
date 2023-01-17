@@ -1,1 +1,7 @@
 battle ship ig
+
+
+things to do:
+be ready for ready
+when ready is there start listening
+find a way to listen without blocking or error
