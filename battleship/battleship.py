@@ -15,26 +15,24 @@ class BattleshipSelf(Fl_Window):
         for col in range(5):
             for row in range(5):
                 self.ownBL.append(Fl_Button(col*60+60,row*60+60, 60,60))
-                self.ownBL[-1].callback(self.but_cb)
+                self.ownBL[-1].callback(self.own_cb)
                 self.otherBL.append(Fl_Button(col*60+420,row*60+60, 60,60))
-                self.otherBL[-1].callback(self.but_cb)
+                self.otherBL[-1].callback(self.other_cb)
                 
         for x in range(1, 6):
             Fl_Box(x*60,0, 60,60).label(chr(64+x))
             Fl_Box(x*60+360,0, 60,60).label(chr(64+x))
             
         for y in range(5):
-            YB.append(Fl_Box(0,60+y*60, 60,60))
-            YB[-1].label(str(y+1))
-            YB.append(Fl_Box(360,60+y*60, 60,60))
-            YB[-1].label(str(y+1))
+            Fl_Box(0,60+y*60, 60,60).label(str(y+1))
+            Fl_Box(360,60+y*60, 60,60).label(str(y+1))
             
             
         self.end()
             
         self.resizable(self)
         
-        #self.connect()
+        self.connect()
 
         
     def connect(self):
@@ -59,16 +57,22 @@ class BattleshipSelf(Fl_Window):
         else:
             print('how did you mess up spelling client/server')
         
-    def but_cb(self, wid):
+    def own_cb(self, wid):
         if len(self.shiploc) < 4 and wid.label() == None:
             wid.label('s')
-            self.shiploc.append(self.BL.index(wid))
+            self.shiploc.append(self.ownBL.index(wid))
             print(self.shiploc)
             
             if len(self.shiploc) == 4:
-                
+                print('shot')
+                #self.conn.setblocking(False)
                 self.shot()
     
+    def other_cb(self, wid):
+        loc = self.otherBL.index(wid)
+        self.conn.send(str(loc).encode())
+        print(loc)
+        
     def shot(self):
         while True:
             loc = self.conn.recv(1024)
@@ -78,6 +82,6 @@ class BattleshipSelf(Fl_Window):
         
 if __name__ == "__main__":
     #gameSelf = BattleshipSelf(0, 0, 360, 360, sys.argv[1])
-    gameSelf = BattleshipSelf(0, 0, 720, 360, None)
+    gameSelf = BattleshipSelf(0, 0, 780, 500, None)
     gameSelf.show()
     Fl.run()
