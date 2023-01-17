@@ -10,14 +10,20 @@ class BattleshipSelf(Fl_Window):
         self.ownBL = []
         self.otherBL = []
         self.shiploc = []
+        self.blank = Fl_PNG_Image('blank.png').copy(60, 60)
+        self.hit = Fl_PNG_Image('hit.png').copy(60, 60)
+        self.miss = Fl_PNG_Image('miss.png').copy(60, 60)
+        self.ship = Fl_PNG_Image('ship.png').copy(60, 60)
         
         
         for col in range(5):
             for row in range(5):
                 self.ownBL.append(Fl_Button(col*60+60,row*60+60, 60,60))
                 self.ownBL[-1].callback(self.own_cb)
+                self.ownBL[-1].image(self.blank)
                 self.otherBL.append(Fl_Button(col*60+420,row*60+60, 60,60))
                 self.otherBL[-1].callback(self.other_cb)
+                self.otherBL[-1].image(self.blank)
                 
         for x in range(1, 6):
             Fl_Box(x*60,0, 60,60).label(chr(64+x))
@@ -27,12 +33,14 @@ class BattleshipSelf(Fl_Window):
             Fl_Box(0,60+y*60, 60,60).label(str(y+1))
             Fl_Box(360,60+y*60, 60,60).label(str(y+1))
             
+        self.readybut = Fl_Button(60, 450, 60, 60, 'Ready?')
+            
             
         self.end()
             
         self.resizable(self)
-        
         self.connect()
+        
 
         
     def connect(self):
@@ -58,30 +66,41 @@ class BattleshipSelf(Fl_Window):
             print('how did you mess up spelling client/server')
         
     def own_cb(self, wid):
-        if len(self.shiploc) < 4 and wid.label() == None:
+        if len(self.shiploc) < 5 and wid.label() == None:
             wid.label('s')
             self.shiploc.append(self.ownBL.index(wid))
             print(self.shiploc)
-            
-            if len(self.shiploc) == 4:
-                print('shot')
-                #self.conn.setblocking(False)
-                self.shot()
     
     def other_cb(self, wid):
         loc = self.otherBL.index(wid)
-        self.conn.send(str(loc).encode())
-        print(loc)
+        sent = self.conn.sendall(str(loc).encode())
+        self.recv = self.conn.recv(1024)
+        print(sent, 'if None == success')
         
+        
+    def ready(self):
+        if len(self.shiploc) == 5:
+            self.conn.sendall('Ready')
+    
+            
+        else:
+            print(f'Not enough ships. Place {5 - len(self.shiploc)} more ship(s)')
+            
+            
     def shot(self):
-        while True:
-            loc = self.conn.recv(1024)
-            if int(loc.decode()) in self.shiploc:
-                self.LB[loc.decode()].label('h')
+        #while len(self.shiploc) != 0:
+        print('shotted')
+        loc = self.conn.recv(1024)
+        loc = int(loc.decode())
+        print(loc, 'here')
+        if loc in self.shiploc:
+            self.ownBL[loc].label('h')
+            self.shiploc.remove(loc)
+        self.shot()
         
         
 if __name__ == "__main__":
-    #gameSelf = BattleshipSelf(0, 0, 360, 360, sys.argv[1])
-    gameSelf = BattleshipSelf(0, 0, 780, 500, None)
+    gameSelf = BattleshipSelf(0, 0, 780, 500, sys.argv[1])
+    #gameSelf = BattleshipSelf(0, 0, 780, 500, None)
     gameSelf.show()
     Fl.run()
