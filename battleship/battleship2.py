@@ -2,36 +2,34 @@ from fltk import *
 import socket 
 import sys
 import pickle as p
-import threading as th
 #python3 battleship.py server/client localhost port
 
-class BattleshipSelf(Fl_Window):
+class Battleship(Fl_Window):
     def __init__(self, x, y, width, height, label):
         Fl_Window.__init__(self, x, y, width, height, label)
         self.begin()
-        self.ownBL = []
-        self.otherBL = []
-        self.shiploc = []
-        self.shotloc = []
-        self.shiphits = 0
-        self.blank = Fl_PNG_Image('blank.png').copy(60, 60)
-        self.hit = Fl_PNG_Image('hit.png').copy(60, 60)
-        self.miss = Fl_PNG_Image('miss.png').copy(60, 60)
-        self.ship = Fl_PNG_Image('ship.png').copy(60, 60)
-        
+        self.ownButList = []
+        self.otherButList = []
+        self.shipLocation = []
+        self.shotLocation = []
+        self.shipsSunk = 0
+        self.blankImage = Fl_PNG_Image('blank.png').copy(60, 60)
+        self.hitImage = Fl_PNG_Image('hit.png').copy(60, 60)
+        self.missImage = Fl_PNG_Image('miss.png').copy(60, 60)
+        self.shipImage = Fl_PNG_Image('ship.png').copy(60, 60)
         
         for col in range(5):
             for row in range(5):
-                self.ownBL.append(Fl_Button(col*60+60,row*60+60, 60,60))
-                self.ownBL[-1].callback(self.place)
-                self.ownBL[-1].image(self.blank)
+                self.ownButList.append(Fl_Button(col*60+60, row*60+60, 60, 60))
+                self.ownButList[-1].callback(self.placeShips)
+                self.ownButList[-1].image(self.blankImage)
 
         for col2 in range(5):
             for row2 in range(5):
-                self.otherBL.append(Fl_Button(col2*60+420,row2*60+60, 60,60))
-                self.otherBL[-1].callback(self.shoot)
-                self.otherBL[-1].image(self.blank)
-                self.otherBL[-1].deactivate()
+                self.otherButList.append(Fl_Button(col2*60+420,row2*60+60, 60,60))
+                self.otherButList[-1].callback(self.shoot)
+                self.otherButList[-1].image(self.blankImage)
+                self.otherButList[-1].deactivate()
         
         for x in range(1, 6):
             Fl_Box(x*60,0, 60,60).label(chr(64+x))
@@ -41,109 +39,143 @@ class BattleshipSelf(Fl_Window):
             Fl_Box(0,60+y*60, 60,60).label(str(y+1))
             Fl_Box(360,60+y*60, 60,60).label(str(y+1))
             
-        self.readybut = Fl_Button(60, 450, 60, 60, 'Ready?')
-        self.readybut.callback(self.ready)
+        self.readyBut = Fl_Button(60, 400, 60, 60, 'Ready')
+        self.readyBut.callback(self.isReady)
             
         self.end()
             
         self.resizable(self)
-        self.connect()
-        
+        self.startConnections()
+        self.callback(self.close)
 
-    def connect(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def startConnections(self):
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         host = sys.argv[2]
         port = int(sys.argv[3])
 
         if sys.argv[1] == 'server':
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(10)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind((host, port))
-            s.listen(1)
-            self.conn, addr = s.accept()
+            self.s.bind((host, port))
+            self.s.listen()
+            self.fdl = self.s.fileno()
+            Fl.add_fd(self.fdl, self.acceptConnections)
+            self.turn = False
             
         elif sys.argv[1] == 'client':
-            s.connect((host, port))
-            self.conn = s
-        else:
-            print('how did you mess up spelling client/server')
+            self.s.connect((host, port))
+            self.fd = self.s.fileno()
+            Fl.add_fd(self.fd, self.receive)
+            self.turn = True
+
     
-    
-    def place(self, wid):
-        if len(self.shiploc) < 5 and self.ownBL.index(wid) not in self.shiploc:
-            wid.image(self.ship)
+    def acceptConnections(self, fdl):
+        self.conn, addr = self.s.accept()
+        self.fd = self.conn.fileno()
+        Fl.add_fd(self.fd, self.receive)
+        
+        
+    def placeShips(self, wid):
+        if len(self.shipLocation) < 5 and self.ownButList.index(wid) not in self.shipLocation:
+            wid.image(self.shipImage)
             wid.redraw()
-            self.shiploc.append(self.ownBL.index(wid))
+            self.shipLocation.append(self.ownButList.index(wid))
     
         
-    def ready(self, wid):
-        if len(self.shiploc) == 5:
-            L = p.dumps(self.shiploc)
+    def isReady(self, wid):
+        if len(self.shipLocation) == 5:
+            L = p.dumps(self.shipLocation)
             if sys.argv[1] == 'server':
-                self.othershiploc = p.loads(self.conn.recv(1024))
-                self.conn.send(L)
-                self.turn = False
-                self.receive()
+                self.conn.sendall(L)
                 
             elif sys.argv[1] == 'client':
-                self.conn.send(L)
-                self.othershiploc = p.loads(self.conn.recv(1024))
-                self.turn = True
+                self.s.sendall(L)
+                
             
-            self.onoff()
+            self.onOff()
+            self.readyBut.deactivate()
             
         else:
-            print(f'Not enough ships. Place {5 - len(self.shiploc)} more ship(s)')
+            print(f'Not enough ships. Place {5 - len(self.shipLocation)} more ship(s)')
             
-    def onoff(self):
+            
+    def onOff(self):
         if self.turn == True:
-            for but in self.otherBL:
+            for but in self.otherButList:
                 but.activate()
                 
         if self.turn == False: #server
-            for but in self.otherBL:
+            for but in self.otherButList:
                 but.deactivate()
-            self.receive()
+               
                 
     def shoot(self, wid):
-        loc = self.otherBL.index(wid)
-        if loc not in self.shotloc:
-            self.shotloc.append(loc)
-            self.conn.send(str(loc).encode())
-            if loc in self.othershiploc:
-                self.otherBL[loc].image(self.hit)
-                self.shiphits += 1
-            else:
-                self.otherBL[loc].image(self.miss)
-            self.otherBL[loc].redraw()
+        loc = self.otherButList.index(wid)
+        if self.turn == False:
+            return
+        elif loc not in self.shotLocation:
             self.turn = False
+            self.shotLocation.append(loc)
+            self.sendData(loc)
+            if loc in self.othershiploc:
+                wid.image(self.hitImage)
+                self.shipsSunk += 1
+            else:
+                wid.image(self.missImage)
+            wid.redraw()
             self.end()
-            self.onoff()
+        wid.callback(None)
+        self.onOff()
 
             
-    def receive(self):
-        loc = self.conn.recv(1024)
-        loc = int(loc.decode())
-        if loc in self.shiploc:
-            self.ownBL[loc].image(self.hit)
+    def receive(self, fd):
+        loc = self.recvData()
+        loc = p.loads(loc)
+        if type(loc) == list:
+            self.othershiploc = loc
+            return
+        self.turn = not self.turn
+        if loc in self.shipLocation:
+            self.ownButList[loc].image(self.hitImage)
         else:
-            self.ownBL[loc].image(self.miss)
-        self.ownBL[loc].redraw()
-        self.turn = True
-        self.onoff()
+            self.ownButList[loc].image(self.missImage)
+        self.ownButList[loc].redraw()
+        self.onOff()
     
     
-    def end(self):
-        if self.shiphits == 5:
+    def endingCondition(self):
+        if self.shipsSunk == 5:
             fl_message('winning')
+            self.close()
             
+            
+    def sendData(self, data):
+        data = p.dumps(data)
+        if sys.argv[1] == 'client':
+            self.s.sendall(data)
+        elif sys.argv[1] == 'server':
+            self.conn.sendall(data)
+            
+            
+    def recvData(self):
+        if sys.argv[1] == 'client':
+            data = self.s.recv(1024)
+        elif sys.argv[1] == 'server':
+            data = self.conn.recv(1024)
+        return data
+        
+        
+    def close(self, wid):
+        try:
+            self.conn.close()
+        except:
+            print('closing without a connection')
+        finally:
+            self.hide()
         
 if __name__ == "__main__":
     try:
-        gameSelf = BattleshipSelf(0, 0, 780, 500, sys.argv[1])
+        gameSelf = Battleship(0, 0, 780, 500, sys.argv[1])
         gameSelf.show()
         Fl.run()
     except Exception as e:
         print(e)
-        gameSelf.close()
