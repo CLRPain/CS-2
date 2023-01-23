@@ -60,7 +60,7 @@ class Home(Fl_Window):
             host = sys.argv[2]
             port = int(sys.argv[3])
             s.connect( (host, port) )
-            return s
+            self.conn = s
 
 
             #while True:
@@ -78,7 +78,6 @@ class Home(Fl_Window):
             s.bind( (host, port) )
             s.listen(1)
             self.conn, addr = s.accept()
-            return self.conn
 
             #while True:
                 #pshot, con = conn.recv(1024)
@@ -108,8 +107,8 @@ class Home(Fl_Window):
                                         self.abl[coord].callback(self.shoot, coord)
                                         
                         else:
-                            data = self.s.recv(1024).decode()
-                            self.s.send('Ready'.encode())
+                            data = self.conn.recv(1024).decode()
+                            self.conn.send('Ready'.encode())
                             if data == 'Ready':
                                 for y in range(5):
                                     for x in range(5):
@@ -121,21 +120,14 @@ class Home(Fl_Window):
             self.sturn = False
             turn = str(self.sturn)
             shot = str(coord)
-            self.conn.sendall(shot.encode(), turn.encode())
+            self.conn.sendall(shot.encode())
         if type == "Client" and self.sturn == False:
             self.sturn = True
             shot = coord
-            self.s.sendall(shot.encode(), self.sturn.encode())
+            self.s.sendall(shot.encode())
 
-        
-"""
-self.sl[(0,0)].activate()
-self.sl[(0,0)].image(self.hitimg)
-self.sl[(0,0)].deactivate()
-#if (0,0) in self.sl.keys(): very cool as keys return as a list
-#print("hi")
-"""    
 
 win = Home(400,800,f"Water Shoot {type}: Home")
 win.show()
 Fl.run()
+
