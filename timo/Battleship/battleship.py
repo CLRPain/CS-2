@@ -199,26 +199,33 @@ class Battle_Ship(Fl_Window):
             self.opphits += 1
 
     def receive_data(self, fd):  # When you receive data
-        if sys.argv[1] == 'server':
-            data = self.conn.recv(1024)
-        elif sys.argv[1] == 'client':
-            data = self.s.recv(1024)
-        data = pickle.loads(data)
-        if type(data) == type(self.opponentship_list):
-            self.opponentship_list = data
-        else:
-            if data == 'win':
-                self.gameover('loose')
-            if self.turn == 'client':
-                self.turn = 'server'
+        try:
+            if sys.argv[1] == 'server':
+                data = self.conn.recv(1024)
+            elif sys.argv[1] == 'client':
+                data = self.s.recv(1024)
+            data = pickle.loads(data)
+            if type(data) == type(self.opponentship_list):
+                self.opponentship_list = data
             else:
-                self.turn = 'client'
-            if data in self.myship_list:
+                if data == 'win':
+                    self.gameover('loose')
+                if self.turn == 'client':
+                    self.turn = 'server'
+                else:
+                    self.turn = 'client'
+                if data in self.myship_list:
 
-                self.hit_ship(data, 'opponent')
-            else:
-                self.miss_ship(data, 'opponent')
-
+                    self.hit_ship(data, 'opponent')
+                else:
+                    self.miss_ship(data, 'opponent')
+        except:
+            if sys.argv[1] == 'server':
+                self.conn.close()
+            elif sys.argv[1] == 'client':
+                self.s.close()
+            
+            
     def gameover(self, win):  # When the game is won/lost
         for x in range(len(self.opponents_grid)):
             for y in range(len(self.opponents_grid[x])):
