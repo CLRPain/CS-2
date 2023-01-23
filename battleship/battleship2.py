@@ -13,6 +13,7 @@ class Battleship(Fl_Window):
         self.shipLocation = []
         self.shotLocation = []
         self.shipsSunk = 0
+        self.ownShipSunk = 0
         self.blankImage = Fl_PNG_Image('blank.png').copy(60, 60)
         self.hitImage = Fl_PNG_Image('hit.png').copy(60, 60)
         self.missImage = Fl_PNG_Image('miss.png').copy(60, 60)
@@ -47,6 +48,7 @@ class Battleship(Fl_Window):
         self.resizable(self)
         self.startConnections()
         self.callback(self.close)
+
 
     def startConnections(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -136,17 +138,31 @@ class Battleship(Fl_Window):
         self.turn = not self.turn
         if loc in self.shipLocation:
             self.ownButList[loc].image(self.hitImage)
+            self.ownShipSunk += 1
         else:
             self.ownButList[loc].image(self.missImage)
         self.ownButList[loc].redraw()
+        self.endingCondition()
         self.onOff()
     
     
     def endingCondition(self):
         if self.shipsSunk == 5:
             fl_message('winning')
-            self.close()
+            for but in self.ownButList:
+                but.deactivate()
+            for but in self.otherButList:
+                but.deactivate()
+            self.close(1)
             
+        if self.ownShipSunk == 5:
+            fl_message('lose')
+            for but in self.ownButList:
+                but.deactivate()
+            for but in self.otherButList:
+                but.deactivate()
+            self.close(1)
+                     
             
     def sendData(self, data):
         data = p.dumps(data)
@@ -166,7 +182,12 @@ class Battleship(Fl_Window):
         
     def close(self, wid):
         try:
-            self.conn.close()
+            if sys.argv[1] == 'client':
+                self.conn.close()
+            else:
+                self.s.close()
+                Fl.remove_fd(self.fdl)
+            Fl.remove_fd(self.fd)
         except:
             print('closing without a connection')
         finally:
