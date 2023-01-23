@@ -2,6 +2,7 @@ import socket
 from fltk import *
 import sys
 
+"""
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 if sys.argv[1] == "client":
@@ -11,12 +12,14 @@ if sys.argv[1] == "client":
     port = int(sys.argv[3])
     s.connect( (host, port) )
     """
+"""
     while True:
         pshot, con = s.recv(1024)
         pshot.decode()
-        #if con.decode() == True:
+        #if con.decode() == "True":
         print("Hi")
     """
+"""
 if sys.argv[1] == "server":
     type = "Server"
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,13 +30,17 @@ if sys.argv[1] == "server":
     s.listen(1)
     conn, addr = s.accept()
     """
+"""
     while True:
         pshot, con = conn.recv(1024)
         pshot.decode()
-        #if con.decode() == True:
+        #if con.decode() == "True":
         print("Hi")
     """
-
+if sys.argv[1] == "client":
+    type = "Client"
+if sys.argv[1] == "server":
+    type = "Server"
 
 class Home(Fl_Window):
     abl = {}
@@ -75,8 +82,46 @@ class Home(Fl_Window):
             box = Fl_Box(0,425 + 75*x,25,75, chr(65+x))
         for x in range(5):
             box = Fl_Box(25 + 75*x,400,75,25, str(x + 1))
-        self.resizable(self)    
-            
+        self.resizable(self)
+        self.unite()
+
+
+    def unite(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        if type == "Client":
+            s.settimeout(5.0)
+            host = sys.argv[2]
+            port = int(sys.argv[3])
+            s.connect( (host, port) )
+            return s
+
+
+            #while True:
+                #pshot, con = s.recv(1024)
+                #pshot.decode()
+                #if con.decode() == "True":
+                #print("Hi")
+
+
+        if type == "Server":
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            conn = s
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            host = sys.argv[2]
+            port = int(sys.argv[3])
+            s.bind( (host, port) )
+            s.listen(1)
+            conn, addr = s.accept()
+            return conn
+
+            #while True:
+                #pshot, con = conn.recv(1024)
+                #pshot.decode()
+                #if con.decode() == "True":
+                #print("Hi")
+
+        
             
     def ship(self, wid, coord):
         self.boats -= 1
@@ -89,8 +134,8 @@ class Home(Fl_Window):
                     for x in range(5):
                         self.bl[x,y].deactivate()
                         if type == "Server":
-                            conn.send('Ready'.encode())
-                            data = conn.recv(1024).decode()
+                            self.conn.send('Ready'.encode())
+                            data = self.conn.recv(1024).decode()
                             if data == 'Ready':
                                 for y in range(5):
                                     for x in range(5):
@@ -98,8 +143,8 @@ class Home(Fl_Window):
                                         self.abl[coord].callback(self.shoot, coord)
                                         
                         else:
-                            data = s.recv(1024).decode()
-                            s.send('Ready'.encode())
+                            data = self.s.recv(1024).decode()
+                            self.s.send('Ready'.encode())
                             if data == 'Ready':
                                 for y in range(5):
                                     for x in range(5):
@@ -109,12 +154,13 @@ class Home(Fl_Window):
     def shoot(self, wid, coord):
         if type == "Server" and self.sturn == True:
             self.sturn = False
-            shot = coord
-            conn.sendall(shot.encode(), self.sturn.encode())
+            turn = str(self.sturn)
+            shot = str(coord)
+            self.conn.sendall(shot.encode(), turn.encode())
         if type == "Client" and self.sturn == False:
             self.sturn = True
             shot = coord
-            s.sendall(shot.encode(), self.sturn.encode())
+            self.s.sendall(shot.encode(), self.sturn.encode())
 
         
 """
