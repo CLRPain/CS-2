@@ -57,6 +57,7 @@ class BattleshipSelf(Fl_Window):
 
         if sys.argv[1] == 'server':
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(10)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((host, port))
             s.listen(1)
