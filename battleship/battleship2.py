@@ -19,30 +19,30 @@ class Battleship(Fl_Window):
         self.missImage = Fl_PNG_Image('miss.png').copy(60, 60)
         self.shipImage = Fl_PNG_Image('ship.png').copy(60, 60)
         
-        for col in range(5):
+        for col in range(5): #own board
             for row in range(5):
                 self.ownButList.append(Fl_Button(col*60+60, row*60+60, 60, 60))
                 self.ownButList[-1].callback(self.placeShips)
                 self.ownButList[-1].image(self.blankImage)
 
-        for col2 in range(5):
+        for col2 in range(5): #opponent board
             for row2 in range(5):
                 self.otherButList.append(Fl_Button(col2*60+420,row2*60+60, 60,60))
                 self.otherButList[-1].callback(self.shoot)
                 self.otherButList[-1].image(self.blankImage)
                 self.otherButList[-1].deactivate()
         
-        for x in range(1, 6):
+        for x in range(1, 6): #side labels
             Fl_Box(x*60,0, 60,60).label(chr(64+x))
             Fl_Box(x*60+360,0, 60,60).label(chr(64+x))
             
-        for y in range(5):
+        for y in range(5): #side labels
             Fl_Box(0,60+y*60, 60,60).label(str(y+1))
             Fl_Box(360,60+y*60, 60,60).label(str(y+1))
             
         self.readyBut = Fl_Button(60, 400, 60, 60, 'Ready')
         self.readyBut.callback(self.isReady)
-        self.out = Fl_Output(420, 400, 200, 30)
+        self.out = Fl_Output(420, 400, 200, 30) #outputs turns and connections
             
         self.end()
             
@@ -51,7 +51,8 @@ class Battleship(Fl_Window):
         self.callback(self.close)
 
 
-    def startConnections(self):
+    def startConnections(self): 
+        #creates tcp connection
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         host = sys.argv[2]
@@ -64,7 +65,6 @@ class Battleship(Fl_Window):
             self.fdl = self.s.fileno()
             Fl.add_fd(self.fdl, self.acceptConnections)
             self.turn = False
-            self.out.value('Connection Accepted')
             
         elif sys.argv[1] == 'client':
             self.s.connect((host, port))
@@ -76,6 +76,7 @@ class Battleship(Fl_Window):
     
     def acceptConnections(self, fdl):
         self.conn, addr = self.s.accept()
+        self.out.value('Connection Accepted')
         self.fd = self.conn.fileno()
         Fl.add_fd(self.fd, self.receive)
         
