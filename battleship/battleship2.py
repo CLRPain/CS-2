@@ -52,8 +52,8 @@ class BattleshipSelf(Fl_Window):
 
     def connect(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        host = 'localhost' #sys.argv[2]
-        port = 25565 #int(sys.argv[3])
+        host = sys.argv[2]
+        port = int(sys.argv[3])
 
         if sys.argv[1] == 'server':
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
