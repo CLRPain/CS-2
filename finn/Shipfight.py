@@ -2,41 +2,7 @@ import socket
 from fltk import *
 import sys
 
-"""
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-if sys.argv[1] == "client":
-    type = "Client"
-    s.settimeout(5.0)
-    host = sys.argv[2]
-    port = int(sys.argv[3])
-    s.connect( (host, port) )
-    """
-"""
-    while True:
-        pshot, con = s.recv(1024)
-        pshot.decode()
-        #if con.decode() == "True":
-        print("Hi")
-    """
-"""
-if sys.argv[1] == "server":
-    type = "Server"
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    host = sys.argv[2]
-    port = int(sys.argv[3])
-    s.bind( (host, port) )
-    s.listen(1)
-    conn, addr = s.accept()
-    """
-"""
-    while True:
-        pshot, con = conn.recv(1024)
-        pshot.decode()
-        #if con.decode() == "True":
-        print("Hi")
-    """
 if sys.argv[1] == "client":
     type = "Client"
 if sys.argv[1] == "server":
@@ -106,14 +72,13 @@ class Home(Fl_Window):
 
         if type == "Server":
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn = s
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             host = sys.argv[2]
             port = int(sys.argv[3])
             s.bind( (host, port) )
             s.listen(1)
-            conn, addr = s.accept()
-            return conn
+            self.conn, addr = s.accept()
+            return self.conn
 
             #while True:
                 #pshot, con = conn.recv(1024)
