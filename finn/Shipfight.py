@@ -12,6 +12,7 @@ class Home(Fl_Window):
     abl = {}
     bl = {}
     sl = {}
+    hits = 0
     sturn = True
     hit = False
     boats = 5
@@ -25,6 +26,7 @@ class Home(Fl_Window):
         self.hitimg = hitimg.copy(75,75)
         missimg = Fl_PNG_Image("miss.png")
         self.missimg = missimg.copy(75,75)
+        self.unite()
         for y in range(5):
             for x in range(5):
                 but = Fl_Button(25 + 75*x,25 + 75*y,75,75)
@@ -39,6 +41,7 @@ class Home(Fl_Window):
                 coord = (x,y)
                 but.image(blankimg)
                 self.abl[coord] = but
+                but.callback(self.fire(coord))
                  
         for x in range(5):
             box = Fl_Box(0,25 + 75*x,25,75, chr(65+x))
@@ -49,7 +52,7 @@ class Home(Fl_Window):
         for x in range(5):
             box = Fl_Box(25 + 75*x,400,75,25, str(x + 1))
         self.resizable(self)
-        self.unite()
+        
 
 
     def unite(self):
@@ -61,6 +64,7 @@ class Home(Fl_Window):
             port = int(sys.argv[3])
             s.connect( (host, port) )
             self.conn = s
+            return s
 
 
             #while True:
@@ -78,6 +82,7 @@ class Home(Fl_Window):
             s.bind( (host, port) )
             s.listen(1)
             self.conn, addr = s.accept()
+            
 
             #while True:
                 #pshot, con = conn.recv(1024)
@@ -99,35 +104,84 @@ class Home(Fl_Window):
                         self.bl[x,y].deactivate()
                         if type == "Server":
                             self.conn.send('Ready'.encode())
-                            data = self.conn.recv(1024).decode()
+                            self.conn.settimeout(5.0)
+                            data = self.conn.recv(1024).decode() #server breaks here
                             if data == 'Ready':
                                 for y in range(5):
                                     for x in range(5):
                                         coord = (x,y)
-                                        self.abl[coord].callback(self.shoot, coord)
-                                        
+                                        self.abl[coord].deactivate()
+                                self.sturn()        
                         else:
-                            data = self.conn.recv(1024).decode()
+                            self.conn.settimeout(5.0)
+                            data = self.conn.recv(1024).decode() #client breaks here
                             self.conn.send('Ready'.encode())
                             if data == 'Ready':
                                 for y in range(5):
                                     for x in range(5):
                                         coord = (x,y)
-                                        self.abl[coord].callback(self.shoot, coord)
+                                        self.abl[coord].deactivate()
+                                self.sturn()
 
-    def shoot(self, wid, coord):
-        if type == "Server" and self.sturn == True:
-            self.sturn = False
-            turn = str(self.sturn)
-            shot = str(coord)
-            self.conn.sendall(shot.encode())
-        if type == "Client" and self.sturn == False:
-            self.sturn = True
-            shot = coord
-            self.s.sendall(shot.encode())
 
+    def sturn(self):
+        if type == "Server":
+            self.turn = True
+            self.rturn()
+            
+            
+        if type == "Client":
+            self.turn = False
+            self.rturn()
+    
+    def rturn(self):
+        if self.turn == False:
+            self.recieve()
+            self.turn = True
+        if self.turn == True:
+            for y in range(5):
+                for x in range(5):
+                    coord = (x,y)
+                    self.abl[coord].activate()
+            
+
+
+    def recieve(self):
+        shot = self.conn.recv(1024)
+        shot = shot.decode()
+        #print(shot)
+
+    def fire(self, coord):
+        coord = str(coord)
+        self.conn.sendall(coord.encode())
+        self.turn = False
+
+
+    def win(self):
+        if self.hits == 5:
+            print("a winner is you")
+
+
+
+
+
+        
+    
+
+
+    
+    
+
+
+        
+"""
+self.sl[(0,0)].activate()
+self.sl[(0,0)].image(self.hitimg)
+self.sl[(0,0)].deactivate()
+#if (0,0) in self.sl.keys(): very cool as keys return as a list
+#print("hi")
+"""    
 
 win = Home(400,800,f"Water Shoot {type}: Home")
 win.show()
 Fl.run()
-
