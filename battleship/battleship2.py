@@ -42,6 +42,7 @@ class Battleship(Fl_Window):
             
         self.readyBut = Fl_Button(60, 400, 60, 60, 'Ready')
         self.readyBut.callback(self.isReady)
+        self.out = Fl_Output(420, 400, 200, 30)
             
         self.end()
             
@@ -55,6 +56,7 @@ class Battleship(Fl_Window):
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         host = sys.argv[2]
         port = int(sys.argv[3])
+        self.out.value('Connection Started')
 
         if sys.argv[1] == 'server':
             self.s.bind((host, port))
@@ -62,12 +64,14 @@ class Battleship(Fl_Window):
             self.fdl = self.s.fileno()
             Fl.add_fd(self.fdl, self.acceptConnections)
             self.turn = False
+            self.out.value('Connection Accepted')
             
         elif sys.argv[1] == 'client':
             self.s.connect((host, port))
             self.fd = self.s.fileno()
             Fl.add_fd(self.fd, self.receive)
             self.turn = True
+            self.out.value('Connection Accepted')
 
     
     def acceptConnections(self, fdl):
@@ -91,7 +95,7 @@ class Battleship(Fl_Window):
                 
             elif sys.argv[1] == 'client':
                 self.s.sendall(L)
-                
+            self.out.value('waiting for other...')
             
             self.onOff()
             self.readyBut.deactivate()
@@ -104,6 +108,7 @@ class Battleship(Fl_Window):
         if self.turn == True:
             for but in self.otherButList:
                 but.activate()
+            self.out.value('Your Turn')
                 
         if self.turn == False: #server
             for but in self.otherButList:
@@ -121,29 +126,35 @@ class Battleship(Fl_Window):
             if loc in self.othershiploc:
                 wid.image(self.hitImage)
                 self.shipsSunk += 1
+                self.endingCondition()
             else:
                 wid.image(self.missImage)
             wid.redraw()
             self.end()
         wid.callback(None)
         self.onOff()
+        self.out.value('Opponent Turn')
 
             
     def receive(self, fd):
-        loc = self.recvData()
-        loc = p.loads(loc)
-        if type(loc) == list:
-            self.othershiploc = loc
-            return
-        self.turn = not self.turn
-        if loc in self.shipLocation:
-            self.ownButList[loc].image(self.hitImage)
-            self.ownShipSunk += 1
-        else:
-            self.ownButList[loc].image(self.missImage)
-        self.ownButList[loc].redraw()
-        self.endingCondition()
-        self.onOff()
+        try:
+            loc = self.recvData()
+            loc = p.loads(loc)
+            if type(loc) == list:
+                self.othershiploc = loc
+                return
+            self.turn = not self.turn
+            if loc in self.shipLocation:
+                self.ownButList[loc].image(self.hitImage)
+                self.ownShipSunk += 1
+            else:
+                self.ownButList[loc].image(self.missImage)
+            self.ownButList[loc].redraw()
+            self.endingCondition()
+            self.onOff()
+            self.out.value('Your Turn')
+        except:
+            self.close(1)
     
     
     def endingCondition(self):
