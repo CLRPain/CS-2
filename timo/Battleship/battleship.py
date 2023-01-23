@@ -12,7 +12,8 @@ class Battle_Ship(Fl_Window):
 		self.ships=5
 		self.myship_list=[]
 		self.opponentship_list=[]
-		self.hits=0
+		self.myhits=0
+		self.opphits=0
 		self.misses=0
 		self.squares_shot=[]
 		self.turn='client'
@@ -77,13 +78,13 @@ class Battle_Ship(Fl_Window):
 			self.s.connect((self.host, self.port))
 
 			self.fd=self.s.fileno()
-			print(self.fd)
+			
 			Fl.add_fd( self.fd, self.receive_data)
 
 	def acceptConnection(self, fd):
 		self.conn, addr = self.s.accept()
 		self.fd=self.conn.fileno()
-		print(self.fd)
+		
 		Fl.add_fd(self.fd, self.receive_data) 
 
 
@@ -122,7 +123,7 @@ class Battle_Ship(Fl_Window):
 			self.ready_button.deactivate()
 			data=pickle.dumps(self.myship_list)
 			if sys.argv[1] == 'client':
-				print('client')
+				
 				self.s.sendall(data)
 
 				
@@ -132,7 +133,7 @@ class Battle_Ship(Fl_Window):
 				
 				self.conn.sendall(data)
 				
-			self.opponentship_list = pickle.loads(data)	
+			
 			self.am_ready = True
 			self.placed = True
 
@@ -141,10 +142,12 @@ class Battle_Ship(Fl_Window):
 			
 
 	def shoot(self, w): #When you shoot
+		
 		if self.am_ready == False:
 			return
 		
 		if sys.argv[1] == self.turn:
+			
 			for x in self.opponents_grid:
 
 				if w in x:
@@ -153,7 +156,7 @@ class Battle_Ship(Fl_Window):
 					
 					ind = (self.opponents_grid.index(x), i)
 					
-					print('ind',ind)
+					
 			if ind in self.squares_shot:
 				return
 				
@@ -163,7 +166,7 @@ class Battle_Ship(Fl_Window):
 				self.hit_ship(ind,'player')
 			else:
 				self.miss_ship(ind,'player')
-			print('hi')
+			
 			data = pickle.dumps(ind)
 			if sys.argv[1] == 'client':
 				self.s.sendall(data)
@@ -172,10 +175,14 @@ class Battle_Ship(Fl_Window):
 			
 			self.squares_shot.append(ind)
 			
+			
 			if self.turn == 'client':
 				self.turn = 'server'
 			else:
 				self.turn = 'client'
+				
+			
+				
 
 #data = self.conn.recv(1024)
 		
@@ -188,18 +195,26 @@ class Battle_Ship(Fl_Window):
 			self.opponents_grid[ind[0]][ind[1]].redraw()
 		else:
 			self.my_grid[ind[0]][ind[1]].image(self.miss)
-			self.opponents_grid[ind[0]][ind[1]].redraw()
+			self.my_grid[ind[0]][ind[1]].redraw()
 			
 	def hit_ship(self, ind, player): #When you hit a ship
 		if player == 'player':
 			self.opponents_grid[ind[0]][ind[1]].image(self.hit)
 			self.opponents_grid[ind[0]][ind[1]].redraw()
-			self.hits+=1
-			if self.hits == 5:
+			self.myhits+=1
+			if self.myhits == 5:
+				data = pickle.dumps('win')
+				if sys.argv[1] == 'client':
+					self.s.sendall(data)
+				elif sys.argv[1] == 'server':
+					self.conn.sendall(data)
 				self.gameover('win')
 		else:
+			
 			self.my_grid[ind[0]][ind[1]].image(self.hit)
 			self.my_grid[ind[0]][ind[1]].redraw()
+			self.opphits+=1
+			
 
 	def receive_data(self, fd): #When you receive data
 		if sys.argv[1] == 'server':
@@ -207,20 +222,34 @@ class Battle_Ship(Fl_Window):
 		elif sys.argv[1] == 'client':
 			data = self.s.recv(1024)
 		data = pickle.loads(data)
-		print('data:',data)
+		if type(data) == type(self.opponentship_list):
+			self.opponentship_list = data
+		else:
+			if data == 'win':
+				self.gameover('loose')
+			if self.turn == 'client':
+				self.turn = 'server'
+			else:
+				self.turn = 'client'
+			if data in self.myship_list:
+				
+				self.hit_ship(data, 'opponent')
+			else:
+				self.miss_ship(data, 'opponent')
+		
 
 
 	def gameover(self,win): #When the game is won/lost
-		for x in range(len(opponents_grid)):
-			for y in range(len(opponents_grid[x])):
-				opponents_grid[x][y].deactivate()
-		for x in range(len(my_grid)):
-			for y in range(len(my_grid[x])):
-				my_grid[x][y].deactivate()
+		for x in range(len(self.opponents_grid)):
+			for y in range(len(self.opponents_grid[x])):
+				self.opponents_grid[x][y].deactivate()
+		for x in range(len(self.my_grid)):
+			for y in range(len(self.my_grid[x])):
+				self.my_grid[x][y].deactivate()
 		if win == 'win':
-			fl_message(f'Congrats you won!\n You shot {self.misses+self.hits} missles!')
+			fl_message(f'Congrats you won!\n You shot {self.misses+self.myhits} missles!')
 		else:
-			fl_message(f'Oh no! You ran out of vessels, Better luck next time!\n You shot {self.misses+self.hits} missles!')
+			fl_message(f'Oh no! You ran out of vessels, Better luck next time!\n You shot {self.misses+self.myhits} missles!')
 
 size = 800
 app = Battle_Ship(0, 0, size+300, size)
