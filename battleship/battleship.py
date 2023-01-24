@@ -1,7 +1,7 @@
 from fltk import *
 import socket 
 import sys
-import pickle as p
+from pickle import dumps, loads
 #python3 battleship.py server/client localhost port
 
 class Battleship(Fl_Window):
@@ -11,7 +11,7 @@ class Battleship(Fl_Window):
         self.ownButList = []
         self.otherButList = []
         self.shipLocation = []
-        self.shotLocation = []
+        self.othershiploc = []
         self.shipsSunk = 0
         self.ownShipSunk = 0
         self.blankImage = Fl_PNG_Image('blank.png').copy(60, 60)
@@ -46,9 +46,8 @@ class Battleship(Fl_Window):
             
         self.end()
             
-        self.resizable(self)
         self.startConnections()
-        self.callback(self.close)
+        self.callback(self.close) 
 
 
     def startConnections(self): 
@@ -62,12 +61,14 @@ class Battleship(Fl_Window):
         if sys.argv[1] == 'server':
             self.s.bind((host, port))
             self.s.listen()
+            #finds file descriptor to add (fd of s)
             self.fdl = self.s.fileno()
             Fl.add_fd(self.fdl, self.acceptConnections)
             self.turn = False
             
         elif sys.argv[1] == 'client':
             self.s.connect((host, port))
+            #finds file descriptor to add 
             self.fd = self.s.fileno()
             Fl.add_fd(self.fd, self.receive)
             self.turn = True
@@ -75,6 +76,7 @@ class Battleship(Fl_Window):
 
     
     def acceptConnections(self, fdl):
+        #finds file descriptor to add (fd of self.conn)
         self.conn, addr = self.s.accept()
         self.out.value('Connection Accepted')
         self.fd = self.conn.fileno()
@@ -82,6 +84,7 @@ class Battleship(Fl_Window):
         
         
     def placeShips(self, wid):
+        #allows placement for 5 ships and no overlap
         if len(self.shipLocation) < 5 and self.ownButList.index(wid) not in self.shipLocation:
             wid.image(self.shipImage)
             wid.redraw()
@@ -89,8 +92,10 @@ class Battleship(Fl_Window):
     
         
     def isReady(self, wid):
+        #checks if there are 5 ships
         if len(self.shipLocation) == 5:
-            L = p.dumps(self.shipLocation)
+            L = dumps(self.shipLocation)
+            #sends list of ships to other
             if sys.argv[1] == 'server':
                 self.conn.sendall(L)
                 
@@ -106,6 +111,7 @@ class Battleship(Fl_Window):
             
             
     def onOff(self):
+        #activate/deactivates depending on turn
         if self.turn == True:
             for but in self.otherButList:
                 but.activate()
@@ -118,20 +124,21 @@ class Battleship(Fl_Window):
                 
     def shoot(self, wid):
         loc = self.otherButList.index(wid)
-        if self.turn == False:
+        #prevents shots if its not their turn or the other side isnt ready yet
+        if self.turn == False or len(self.othershiploc) == 0:
             return
-        elif loc not in self.shotLocation:
-            self.turn = False
-            self.shotLocation.append(loc)
-            self.sendData(loc)
-            if loc in self.othershiploc:
-                wid.image(self.hitImage)
-                self.shipsSunk += 1
-                self.endingCondition()
-            else:
-                wid.image(self.missImage)
-            wid.redraw()
-            self.end()
+        self.turn = False
+        self.sendData(loc)
+        #checks if it is a hit or not
+        if loc in self.othershiploc:
+            wid.image(self.hitImage)
+            self.shipsSunk += 1
+            self.endingCondition()
+        else:
+            wid.image(self.missImage)
+        wid.redraw()
+        self.end()
+        #stops shots in the same spot
         wid.callback(None)
         self.onOff()
         self.out.value('Opponent Turn')
@@ -140,25 +147,30 @@ class Battleship(Fl_Window):
     def receive(self, fd):
         try:
             loc = self.recvData()
-            loc = p.loads(loc)
+            loc = loads(loc)
+            #only the ship locations are in a list
             if type(loc) == list:
                 self.othershiploc = loc
                 return
-            self.turn = not self.turn
+            self.turn = True
+            #checks if hit or not
             if loc in self.shipLocation:
                 self.ownButList[loc].image(self.hitImage)
                 self.ownShipSunk += 1
             else:
                 self.ownButList[loc].image(self.missImage)
             self.ownButList[loc].redraw()
+            #checks if they win, lose, or continue
             self.endingCondition()
             self.onOff()
             self.out.value('Your Turn')
         except:
+            #closes connection if window is closed
             self.close(1)
     
     
     def endingCondition(self):
+        #checks if you sunk 5 ships
         if self.shipsSunk == 5:
             fl_message('winning')
             for but in self.ownButList:
@@ -166,7 +178,7 @@ class Battleship(Fl_Window):
             for but in self.otherButList:
                 but.deactivate()
             self.close(1)
-            
+        #checks if your ships are all sunk
         if self.ownShipSunk == 5:
             fl_message('lose')
             for but in self.ownButList:
@@ -177,7 +189,8 @@ class Battleship(Fl_Window):
                      
             
     def sendData(self, data):
-        data = p.dumps(data)
+        #function to send data 
+        data = dumps(data)
         if sys.argv[1] == 'client':
             self.s.sendall(data)
         elif sys.argv[1] == 'server':
@@ -185,6 +198,7 @@ class Battleship(Fl_Window):
             
             
     def recvData(self):
+        #function to receive data
         if sys.argv[1] == 'client':
             data = self.s.recv(1024)
         elif sys.argv[1] == 'server':
@@ -193,6 +207,7 @@ class Battleship(Fl_Window):
         
         
     def close(self, wid):
+        #closes the connections without creating errors
         try:
             if sys.argv[1] == 'client':
                 self.conn.close()
@@ -206,9 +221,6 @@ class Battleship(Fl_Window):
             self.hide()
         
 if __name__ == "__main__":
-    try:
-        gameSelf = Battleship(0, 0, 780, 500, sys.argv[1])
-        gameSelf.show()
-        Fl.run()
-    except Exception as e:
-        print(e)
+    gameSelf = Battleship(0, 0, 780, 500, sys.argv[1])
+    gameSelf.show()
+    Fl.run()
