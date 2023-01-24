@@ -224,3 +224,7 @@ if __name__ == "__main__":
     gameSelf = Battleship(0, 0, 780, 500, sys.argv[1])
     gameSelf.show()
     Fl.run()
+
+    gameSelf = Battleship(0, 0, 780, 500, sys.argv[1])
+    gameSelf.show()
+    Fl.run()
