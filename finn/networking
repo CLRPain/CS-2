@@ -1,0 +1,43 @@
+UDP is faster but less quality gets through. Uses SOCK_DGRAM in socket argument
+
+TCP is slightly slower but more direct and corrects any transmission errors. Uses SOCK_STREAM in socket argument
+
+s.setsockopt(socket,SOL_SOCKET, socket.SO_REUSEADDR, 1) allows the port to instantly close if the program terminates to free up space
+ s.listen(number) is the accepted amount of pending cnonections
+ 
+ conn, addr = s.accept() instead of data (a message) conn is a socket object that establishes the pipeline to communicate and stuff
+ this blocks ^^^ and is also a server line
+ 
+ s.connect((host,port)) is a client line and unblocks the above line
+ 
+ then it blocks on an input line for typing something
+ 
+ s.send(line.encode())
+ 
+ another server line is:
+ data=True
+ 
+ while data:
+	data = conn.recv(2) the 2 is how many BYTES (characters) per packet
+ print(data)
+ 
+ every process had file descriptors:
+ fd = 0 is keyboard input (STDIN)
+ fd = 1 is the output screen (STDOUT)
+ fd = 2 is the error screen (STDERR)
+ fd = 3 is the server socket (S)
+ fd = 4 is the client socket (CONN)
+ 
+
+0 	Standard input 	STDIN_FILENO 	stdin
+1 	Standard output STDOUT_FILENO 	stdout
+2 	Standard error 	STDERR_FILENO 	stderr
+
+
+a network socket object can have pickle dump on it and load it
+
+but it can be malicious so dont accept any packets from timo
+
+you can do Fl.add_fd(fd, function) this adds a little gate over a socket if its fd is 3 so if anything comes through it will execute the function specified
+ 
+ 

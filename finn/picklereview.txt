@@ -1,0 +1,31 @@
+lol pickle
+d = {} dictionary with shit in it
+
+with open("filename", "wb") as f:
+	pickle.dump(d,f) dumping the dictionary into the file because f is the file open function
+wb for writebinary
+or f=open("filename", "wb")
+but if you do this way you have to f.close so you know im doing the with open one
+
+
+
+rb is read binary
+
+with open("filename", "rb") as f:
+	e = pickle.load(f)
+	
+	
+or
+f = open("filename","rb")
+e = pickle.load(f)
+f.close()
+
+NOW THIS WORK FOR FILES ONLY
+
+
+for sockets and server communcation and stuff, you change a bit:
+instead of pickle.dump(d, f)
+
+you do data = pickle.dumps(D) since then connection is already established you only need to specify the data you want to send 
+
+

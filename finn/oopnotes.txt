@@ -1,0 +1,16 @@
+initializer is called constructer in c++
+
+def __init__(self): #(double underscore on both sides)
+dont have to use self as the argument but people will hate you if you dont
+
+you can do A = thing()
+
+thing is the init call and a is the argument in place of self
+
+when they say method of the class they are talking about the funtions in a class
+
+when you define a class, you can also def Classthing1(Classthing2) to inherit all the stuff you already wrote from the other one so you dont have to write it again
+
+parent class and base class are the same thing its the other class that the child / sub inherits from
+
+a function call for an instance in classthing2 will override the function with the same name in classthing (the parent)
