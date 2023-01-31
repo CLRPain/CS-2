@@ -25,6 +25,7 @@ class squar(Fl_Window):
 		for x in range(9):
 			if x != 4:		
 				self.square(l[x], E, k-1)
+		print("hi")
 
 size=900
 win = squar(0,0, size, size, "Carpet")
